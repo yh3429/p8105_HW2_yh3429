@@ -159,3 +159,97 @@ Total_sports_balls= Mr_Trash_wheel %>%  filter(year=="2020") %>%
 According to the sum result in 2020, the total number of sports balls collected by
 Mr.Trash wheel is **856**. 
 
+
+
+
+## Problem 3
+
+### First, clean the data in pols-month.csv.
+
+```{r}
+pols_month = 
+  read_csv ("./data/pols-month.csv") %>% 
+  janitor::clean_names() %>%
+  separate(mon, into = c("year", "month", "day")) %>%
+  mutate(month = month.abb[as.numeric(month)]) %>% 
+  mutate(president = case_when (prez_gop == 1 ~ "gop",
+                                prez_dem == 1 ~ "dem")) %>% 
+  subset( select = -c(prez_dem, prez_gop,day) ) %>% 
+  mutate(year = as.numeric(year))
+
+pols_month
+  
+```
+
+### Second, clean the data in snp.csv using a similar process to the above.
+
+```{r}
+snp=
+  read_csv("./data/snp.csv") %>% 
+  janitor::clean_names() %>%
+  separate(date, into = c("month", "day", "year")) %>% 
+   mutate(month = month.abb[as.numeric(month)]) %>% 
+  subset( select = -c(day)) %>% 
+  select(year, month, close) %>% 
+  mutate(year = as.numeric(year))
+
+  snp
+```
+
+### Third, tidy the unemployment data.
+
+```{r}
+unem = 
+  read_csv("./data/unemployment.csv") %>% 
+   janitor::clean_names() %>% 
+  pivot_longer(
+    jan:dec,
+    names_to = "month",
+    values_to = " percentage"
+  ) %>% 
+    mutate( year = as.numeric(year))
+
+unem
+```
+### Join the datasets by merging snp into pols, and merging unemployment into the result.
+
+```{r}
+pols_snp = pols_month %>% left_join(snp)
+
+pols_snp_unem = pols_snp %>% left_join(unem) %>% mutate( year = as.numeric(year))
+
+```
+### range of years
+```{r}
+# range of years - the data in pols-month.csv.
+ print(max(pols_month$year, na.rm=TRUE)
+                    -min(pols_month$year, na.rm=TRUE))
+
+# range of years - the data in snp.csv.
+print(max(snp$year, na.rm=TRUE)
+                    -min(snp$year, na.rm=TRUE))
+
+# range of years - the unemployment data
+print(max(unem$year, na.rm=TRUE)
+                    -min(unem$year, na.rm=TRUE))
+
+# range of years - the merged resulting dataset
+print(max(pols_snp_unem$year, na.rm=TRUE)
+                    -min(pols_snp_unem$year, na.rm=TRUE))
+```
+
+### A short desciption about these datasets
+
+#### The data in pols-month.csv.
+There are **822** rows and **9** columns. The range of year is **68**. And the key variables include `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`, `rep_dem`, and `president`.
+
+#### The data in snp.csv.
+There are **787** rows and **3** columns. The range of year is **99**. And the key variables include `year`, `month` and `close`.
+
+#### The unemployment data
+There are **816** rows and **3** columns. The range of year is **67**. And the key variables include `year`, `month` and `percentage`.
+
+#### The merged resulting dataset by Joining the datasets by merging snp into pols, and merging unemployment.
+There are **822** rows and **11** columns. The range of year is **68**. And the key variables include `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`, `rep_dem`, `president`,`close` and `percentage`.
+
+
