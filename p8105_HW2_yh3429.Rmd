@@ -1,0 +1,86 @@
+---
+title: "p8105_hw2_yh3429"
+Author: "Yujie Huang"
+output: github_document
+date: "2022-10-05"
+---
+
+
+```{r, message=FALSE}
+library(tidyverse)
+library(readxl)
+```
+
+## Problem 1
+
+### To read and clean the NYC Transit data
+
+
+```{r}
+NYC_transit = read_csv( "./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv",
+  col_types = cols(Route8 = "c", Route9 = "c", Route10 = "c", Route11 = "c")) %>% 
+   janitor::clean_names() %>% 
+  select(
+    line, station_name, station_latitude, station_longitude, 
+    starts_with("route"), entry, exit_only, vending, entrance_type, 
+    ada) %>% 
+  mutate(entry = ifelse(entry == "YES", TRUE, FALSE))
+
+```
+
+### A short description for this dataset
+
+#### What variables the dataset contains
+The dataset has 20 variables including line, station name, station latitude, station longitude, served routes (`Route1`-`Route11`), entry, entrance type, vending, and ADA compliance. 
+
+#### Description of the data cleaning steps so far
+After importing the dataset, we cleaned the data name, specified that `Route` columns 8-11 should be character for consistency with 1-7. And then, we converted the `Route` variable from character to a logical variable.   
+
+#### Giving the dimension (rows x columns) of the resulting dataset. Are these data tidy?
+There are 1,868 rows and 20 columns in the resulting dataset. And these data is not tidy since the route number should be a variable. So, we would need to convert `Route` variables from wide to long format.
+
+
+### Answer following questions
+
+```{r}
+NYC_transit %>% 
+  select(station_name, line) %>% 
+  distinct
+```
+```{r}
+NYC_transit %>% 
+    filter(ada == TRUE) %>% 
+  select(station_name, line) %>% 
+  distinct
+```
+```{r}
+NYC_transit %>% 
+  filter(vending == "NO") %>% 
+  pull (entry) %>% 
+  mean
+  
+```
+
+```{r}
+NYC_transit %>% 
+  pivot_longer(
+    route1:route11,
+    names_to = "route_num",
+    values_to = "route") %>% 
+  filter(route == "A") %>% 
+  select(station_name, line) %>% 
+  distinct
+
+NYC_transit %>% 
+  pivot_longer(
+    route1:route11,
+    names_to = "route_num",
+    values_to = "route") %>% 
+  filter(route == "A", ada == TRUE) %>% 
+  select(station_name, line) %>% 
+  distinct
+```
+
+#### Descriptions of the results from above codes
+According to the results, there are 465 distinct stations are there. Among them, there are 84 stations having ADA compliant.
+And there is 38% station entrances/exits without vending allow entrance.In addition, there are 60 stations serving the A train and of the stations that serve the A train, there are 17 stations having ADA compliant. 
