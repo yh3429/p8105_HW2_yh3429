@@ -84,3 +84,78 @@ NYC_transit %>%
 #### Descriptions of the results from above codes
 According to the results, there are 465 distinct stations are there. Among them, there are 84 stations having ADA compliant.
 And there is 38% station entrances/exits without vending allow entrance.In addition, there are 60 stations serving the A train and of the stations that serve the A train, there are 17 stations having ADA compliant. 
+
+
+
+
+## Problem 2
+
+### To read,clean, and organize the data from Mr. Trash Wheel sheet
+
+```{r}
+Mr_Trash_wheel = read_excel("./data/Trash Wheel Collection Data.xlsx",
+                           sheet =1,
+                           range = "A2:N550",
+                           skip = 1,
+                           col_names = TRUE,
+                           col_types = NULL,
+                           na = ""
+                           ) %>% 
+   janitor::clean_names() %>% 
+   drop_na(dumpster) %>% 
+   mutate(sports_balls =  as.integer(round(sports_balls, digits = 0))) %>% 
+   mutate(sheet_name="Mr")
+```
+
+
+### To read, clean, and organize the data from Professor Trash Wheel sheet
+```{r}
+Pro_Trash_wheel = read_excel ("./data/Trash Wheel Collection Data.xlsx",
+                           sheet =2,
+                           range = "A2:M97",
+                           skip = 1,
+                           col_names = TRUE,
+                           col_types = NULL,
+                           na = ""
+                           ) %>% 
+   janitor::clean_names() %>% 
+   drop_na(dumpster) %>% 
+   mutate(sheet_name="Pro")
+```
+
+### To add an additional variable and combine two datasets
+```{r}
+Pro_Trash_wheel = mutate(Pro_Trash_wheel, 
+                         year = as.character(year)
+                      )
+comb_Trash_wheel= 
+bind_rows(Mr_Trash_wheel, Pro_Trash_wheel, .id="dumpster")
+
+```
+
+### A paragraph description for these datasets
+1. In the combined trash wheel dataset, there are **641** observations of **15** variables.The key variables includes `dumpster`, `month`, `year`, `date`, `weight_tons`, `volume_cubic_yards`, `plastic_bottles`, `polystyrene`, `cigarette_butts`,`glass_bottles`,`grocery_bags`, `chip_bags`, `sports_balls`, `homes_powered`, and `sheet_name`. In addition, the variable `sheet_name` is added in order to distinguish the two datasets with the same columns.
+
+2. In the Mr. trash wheel dataset, there are **547** observations of **15** variables.
+The key variables includes `dumpster`, `month`, `year`, `date`, `weight_tons`, `volume_cubic_yards`, `plastic_bottles`, `polystyrene`, `cigarette_butts`,
+`glass_bottles`, `grocery_bags`,`chip_bags`, `sports_balls`, `homes_powered`,`sheet_name`.  
+
+3. In the Professor trash wheel dataset, there are **94** observations of **14** variables.The key variables includes `dumpster`, `month`, `year`, `date`, `weight_tons`, `volume_cubic_yards`, `plastic_bottles`, `polystyrene`, `cigarette_butts`,`glass_bottles`, `grocery_bags`,`chip_bags`, `homes_powered`,`sheet_name`.  
+
+#### For available data, what was the total weight of trash collected by Professor Trash Wheel?
+
+```{r}
+Total_weight =  sum (Pro_Trash_wheel$weight_tons)
+```
+According to the sum result, the total weight of trash collected by
+Professor Trash wheel is **190.12 tons**.
+
+#### For available data, what was the total number of sports balls collected by Mr.Trash wheel in 2020?
+
+```{r}
+Total_sports_balls= Mr_Trash_wheel %>%  filter(year=="2020") %>% 
+  summarise(sum(sports_balls))
+```
+According to the sum result in 2020, the total number of sports balls collected by
+Mr.Trash wheel is **856**. 
+
